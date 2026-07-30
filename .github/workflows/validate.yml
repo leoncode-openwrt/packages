@@ -1,0 +1,24 @@
+name: Validate repository
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Validate scripts and pinned source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          bash -n scripts/*.sh
+          test "$(sed -n 's/^PKG_SOURCE_VERSION:=//p' packages/odhcpd/Makefile | wc -l)" -eq 1
+          source_ref=$(sed -n 's/^PKG_SOURCE_VERSION:=//p' packages/odhcpd/Makefile)
+          bash scripts/prepare-odhcpd-source.sh \
+            packages/odhcpd/Makefile "$source_ref"
+          git diff --exit-code -- packages/odhcpd/Makefile

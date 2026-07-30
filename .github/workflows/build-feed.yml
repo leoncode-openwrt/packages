@@ -5,13 +5,6 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
-    inputs:
-      odhcpd_ref:
-        description: Full JxnLexn/openwrt-odhcpd commit to build
-        required: false
-        type: string
-  repository_dispatch:
-    types: [odhcpd-updated]
 
 permissions:
   contents: read
@@ -40,22 +33,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-
-      - name: Resolve source pin
-        id: source
-        env:
-          DISPATCH_REF: ${{ github.event.client_payload.source_ref }}
-          INPUT_REF: ${{ inputs.odhcpd_ref }}
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          source_ref=${DISPATCH_REF:-${INPUT_REF:-}}
-          if [[ -n "$source_ref" ]]; then
-            bash scripts/prepare-odhcpd-source.sh \
-              packages/odhcpd/Makefile "$source_ref"
-          fi
-          source_ref=$(sed -n 's/^PKG_SOURCE_VERSION:=//p' packages/odhcpd/Makefile)
-          echo "odhcpd_ref=$source_ref" >> "$GITHUB_OUTPUT"
 
       - name: Install host dependencies
         run: |

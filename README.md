@@ -60,7 +60,12 @@ key fingerprint and repository contents first.
 - Pull requests build packages without signing or publishing them.
 - Pushes to branches other than `main` build packages without signing or
   publishing them.
-- Manual runs and repository-dispatch events build the requested package set.
+- A daily updater resolves and verifies the latest odhcpd commit. It commits a
+  changed pin to `main` and explicitly starts the normal build and publication
+  path.
+- Manual updater runs and `odhcpd-updated` repository-dispatch events can
+  trigger the same pin-update path immediately.
+- Manual build runs rebuild the package set pinned in the repository.
 - Only a successful build on the default branch can access the protected
   `pages` environment, sign the aggregate index, and deploy GitHub Pages.
 - The private EC P-256 key is stored only as the GitHub Actions secret
@@ -70,13 +75,14 @@ key fingerprint and repository contents first.
   feed always contains one coherent index rather than mutually overwriting
   per-package deployments.
 
-The initial source pin is maintained in
+The source pin is maintained in
 [`packages/odhcpd/Makefile`](packages/odhcpd/Makefile). A dispatch from the
 source repository may pass a commit as `client_payload.source_ref`; the
-workflow verifies that it belongs to `JxnLexn/openwrt-odhcpd` before building.
-Only the IPv6-only package is currently defined because that is the deployed
-and verified router variant. The full variant can be added later as a separate,
-deliberate recipe selection.
+updater verifies that the full commit belongs to `JxnLexn/openwrt-odhcpd`
+before committing it. This keeps every published build reproducible from the
+central repository history. Only the IPv6-only package is currently defined
+because that is the deployed and verified router variant. The full variant can
+be added later as a separate, deliberate recipe selection.
 
 ## Add another package
 

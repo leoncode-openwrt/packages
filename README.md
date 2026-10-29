@@ -1,97 +1,57 @@
-# JxnLexn OpenWrt APK feed
+# LeonCode OpenWrt packages
 
-This repository builds and publishes signed custom packages for OpenWrt. One
-feed can contain any number of packages; package recipes live below
-`packages/`, and every supported OpenWrt package architecture receives its own
-signed `packages.adb` index.
+Reproducible custom package builds using official OpenWrt release SDKs.
+This is an independent packaging repository. Sources remain reviewable upstream forks:
 
-## Current packages
+| Source | Branch | Packages and architectures |
+| --- | --- | --- |
+| [ustp](https://github.com/leoncode-openwrt/ustp) | `leoncode/router` | ustp / x86_64 |
+| [ustp](https://github.com/leoncode-openwrt/ustp) | `leoncode/ap` | ustp / aarch64_cortex-a53, mipsel_24kc |
+| [usteer](https://github.com/leoncode-openwrt/usteer) | `leoncode/stable` | usteer / aarch64_cortex-a53, mipsel_24kc |
+| [odhcpd](https://github.com/leoncode-openwrt/odhcpd) | `leoncode/stable` | odhcpd-ipv6only / x86_64 |
 
-| Package source | OpenWrt release | Architecture | Produced packages |
-| --- | --- | --- | --- |
-| [`JxnLexn/openwrt-odhcpd`](https://github.com/JxnLexn/openwrt-odhcpd) | 25.12.5 | `x86_64` | `odhcpd-ipv6only` |
+## Automatic release builds
 
-The published feed is available at:
+Actions checks the official OpenWrt version inventory twice daily. Final releases
+from 25.12.6 onward are eligible; release candidates and moving snapshots are
+excluded. Missing releases are retried. Source pins never follow a moving branch.
+Future incompatible SDKs fail validation instead of publishing partial packages.
 
-```text
-https://jxnlexn.github.io/openwrt-packages/25.12.5/x86_64/packages.adb
-```
+Each release verifies the signed OpenWrt SDK checksum lists, runs regression tests,
+builds all six packages, checks metadata, ELF architecture and dependencies, then
+signs packages and one aggregate index per architecture. All targets must pass.
+[GitHub Releases](https://github.com/leoncode-openwrt/packages/releases) contains
+architecture archives, source and SDK manifests, checksums and validation evidence.
+Actions artifacts are build candidates, not published or hardware-tested packages.
 
-## Add the feed to OpenWrt
+Each archive contains `packages.adb` and a public verification key. Builds are tied
+to the exact OpenWrt release and APK architecture. A release build is not a snapshot
+build, even when the processor architecture matches. The new LeonCode signing key
+is independent of the historical JxnLexn feed. Verify `keys/` before trusting it.
+No workflow installs packages, changes device configuration or flashes firmware.
+Hardware boot and runtime acceptance remain separate from build verification.
 
-Download the repository public key from:
+## Traceable source maintenance
 
-```text
-https://jxnlexn.github.io/openwrt-packages/jxnlexn-openwrt-packages.pem
-```
+`sources/prepared-pins.json` preserves the reviewed archive/patch provenance.
+`sources/organization-pins.json` links the resulting source trees to exact commits
+in the LeonCode forks. Original authorship and licenses are preserved. The initial
+inputs originate from the earlier JxnLexn work; publication branding is LeonCode.
 
-Its SHA-256 fingerprint over the public key in DER form is:
+The router USTP branch excludes AP-specific DSA/shutdown changes. odhcpd retains
+the deployed stable DNS relay backport rather than a newer unrelated fork tip.
+Each fork has an English `LEONCODE.md` explaining its changes and maintenance line.
 
-```text
-985e75a3222225c67087a8fdef4b3ddcc5d2ffa7aaa0275093d3783d23e75eea
-```
+Source updates require a reviewed commit/patch pin and tests. Changed package
+bytes require a new package revision. Release assets are never overwritten.
+Signing is isolated from compilation; pull requests receive no signing secrets.
+SDKs and Actions are pinned, and OpenWrt checksum signatures are verified against
+the committed build-system key. The private signing key is the repository secret
+`APK_REPOSITORY_KEY`; it is never committed or included in artifacts.
 
-Verify this fingerprint against a trusted copy of this README, then install
-the key as:
+GitHub may delay scheduled workflows and disables public-repository schedules
+after 60 days without repository activity. Check Actions health periodically;
+manual dispatch is available. No artificial keepalive commits are created.
 
-```text
-/etc/apk/keys/jxnlexn-openwrt-packages.pem
-```
-
-Add the architecture-specific index URL to:
-
-```text
-/etc/apk/repositories.d/customfeeds.list
-```
-
-For the current x86_64 router, that line is:
-
-```text
-https://jxnlexn.github.io/openwrt-packages/25.12.5/x86_64/packages.adb
-```
-
-Then refresh the package indexes with `apk update`. LuCI uses the same APK
-configuration and will show packages from the custom feed after the refresh.
-Installing the public key or feed is an infrastructure change; inspect the
-key fingerprint and repository contents first.
-
-## Build and publication model
-
-- Pull requests build packages without signing or publishing them.
-- Pushes to branches other than `main` build packages without signing or
-  publishing them.
-- A daily updater resolves and verifies the latest odhcpd commit. It commits a
-  changed pin to `main` and explicitly starts the normal build and publication
-  path.
-- Manual updater runs and `odhcpd-updated` repository-dispatch events can
-  trigger the same pin-update path immediately.
-- Manual build runs rebuild the package set pinned in the repository.
-- Only a successful build on the default branch can access the protected
-  `pages` environment, sign the aggregate index, and deploy GitHub Pages.
-- The private EC P-256 key is stored only as the GitHub Actions secret
-  `APK_REPOSITORY_KEY`. It is never committed or uploaded as an artifact.
-- Each SDK archive is pinned by filename and SHA-256.
-- Existing packages are rebuilt together before publication, so the resulting
-  feed always contains one coherent index rather than mutually overwriting
-  per-package deployments.
-
-The source pin is maintained in
-[`packages/odhcpd/Makefile`](packages/odhcpd/Makefile). A dispatch from the
-source repository may pass a commit as `client_payload.source_ref`; the
-updater verifies that the full commit belongs to `JxnLexn/openwrt-odhcpd`
-before committing it. This keeps every published build reproducible from the
-central repository history. Only the IPv6-only package is currently defined
-because that is the deployed and verified router variant. The full variant can
-be added later as a separate, deliberate recipe selection.
-
-## Add another package
-
-1. Add an OpenWrt package recipe below `packages/<name>/`.
-2. Add the package selection and collection pattern to the workflow.
-3. Add the target architecture to the workflow matrix if it is not already
-   present.
-4. Build all packages for that architecture and let the workflow generate one
-   aggregate `packages.adb`.
-
-One device therefore needs only the single JxnLexn feed for its OpenWrt
-release and architecture, regardless of how many source forks supply packages.
+The former fixed-version publication/source-tip workflows are retired here.
+Existing JxnLexn repositories, device feeds and trust stores remain unchanged.

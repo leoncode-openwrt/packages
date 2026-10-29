@@ -1,0 +1,155 @@
+name: LeonCode package releases
+
+on:
+  schedule:
+    - cron: '23 5,17 * * *'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Final OpenWrt release (empty discovers the next missing release)'
+        type: string
+        default: ''
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: leoncode-package-releases
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      build: ${{ steps.plan.outputs.build }}
+      release: ${{ steps.plan.outputs.release }}
+      tag: ${{ steps.plan.outputs.tag }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Validate source archives and regression fixtures
+        run: |
+          python3 scripts/validate-prepared.py --self-test
+          python3 -m unittest discover -s tests -p 'test_*.py' -v
+          bash -n scripts/*.sh
+      - name: Resolve authenticated SDK matrix
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_RELEASE: ${{ inputs.release }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            REQUESTED_RELEASE=25.12.6
+          fi
+          python3 scripts/releases.py plan --release "$REQUESTED_RELEASE"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: steps.plan.outputs.build == 'true'
+        with:
+          name: release-lock
+          path: release-lock.json
+          if-no-files-found: error
+
+  tests:
+    needs: plan
+    if: needs.plan.outputs.build == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libjson-c-dev libpcap-dev zstd
+      - name: Verify fork trees and run normal and sanitizer tests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/test-sources.py
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.build == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-lock
+      - name: Install SDK host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang curl flex bison g++ gawk \
+            gcc-multilib gettext git libncurses-dev libssl-dev python3-setuptools \
+            jq rsync swig unzip zlib1g-dev file wget zstd cmake ninja-build pkg-config
+      - name: Materialize and verify release inputs
+        run: python3 scripts/releases.py materialize
+      - name: Download and authenticate the pinned SDK
+        env:
+          RELEASE: ${{ needs.plan.outputs.release }}
+          TARGET: ${{ matrix.target }}
+          SDK_FILE: ${{ matrix.sdk_file }}
+          SDK_SHA256: ${{ matrix.sdk_sha256 }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          curl --fail --location --proto '=https' --proto-redir '=https' \
+            "https://downloads.openwrt.org/releases/$RELEASE/targets/$TARGET/$SDK_FILE" \
+            -o "$RUNNER_TEMP/$SDK_FILE"
+          printf '%s  %s\n' "$SDK_SHA256" "$RUNNER_TEMP/$SDK_FILE" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/sdk"
+          tar --zstd -xf "$RUNNER_TEMP/$SDK_FILE" -C "$RUNNER_TEMP/sdk" --strip-components=1
+          python3 scripts/sdk-provenance.py register "$ARCH" "$RUNNER_TEMP/sdk" --archive "$RUNNER_TEMP/$SDK_FILE"
+      - name: Build and verify package candidates
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          bash scripts/build-prepared.sh "$ARCH" "$RUNNER_TEMP/sdk"
+          bash scripts/collect-prepared.sh "$ARCH" "$RUNNER_TEMP/sdk" "$RUNNER_TEMP/candidates"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: candidates-${{ matrix.arch }}
+          path: ${{ runner.temp }}/candidates
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    needs: [plan, tests, build]
+    if: >-
+      needs.plan.outputs.build == 'true' &&
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'leoncode-openwrt/packages'
+    runs-on: ubuntu-24.04
+    environment: releases
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-lock
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: candidates-*
+          path: candidates
+          merge-multiple: true
+      - name: Sign, verify and publish immutable release
+        env:
+          RELEASE: ${{ needs.plan.outputs.release }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+          APK_REPOSITORY_KEY: ${{ secrets.APK_REPOSITORY_KEY }}
+        run: bash scripts/publish.sh

@@ -1,0 +1,23 @@
+[
+  {
+    "name": "libubox",
+    "recipe_url": "https://raw.githubusercontent.com/openwrt/openwrt/v25.12.6/package/libs/libubox/Makefile",
+    "source_commit": "7dd127841e82eb1cfb61185da37dde7b9bd9ba6d",
+    "archive": "libubox-2026.06.19~7dd12784.tar.zst",
+    "sha256": "82f1a83069c0636722fc1c57d567a21f8b14d14904c8bf10059d2a467edd2a10"
+  },
+  {
+    "name": "ubus",
+    "recipe_url": "https://raw.githubusercontent.com/openwrt/openwrt/v25.12.6/package/system/ubus/Makefile",
+    "source_commit": "24864e7840b3a02a9ef76284a373f6b2f00b8a9b",
+    "archive": "ubus-2026.06.28~24864e78.tar.zst",
+    "sha256": "33072c12e6d9a1fd59e3774f029575df61393b5a465486726609ff59314b8a84"
+  },
+  {
+    "name": "libnl-tiny",
+    "recipe_url": "https://raw.githubusercontent.com/openwrt/openwrt/v25.12.6/package/libs/libnl-tiny/Makefile",
+    "source_commit": "40493a655d8caa2ccf5206dde1e733abe2920432",
+    "archive": "libnl-tiny-2025.12.02~40493a65.tar.zst",
+    "sha256": "b45c72c26961fa6eafc14f73693c2fe463912c4cb0488ccea232d61b425c60d5"
+  }
+]

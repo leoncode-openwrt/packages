@@ -1,0 +1,22 @@
+{
+  "ustp-router": {
+    "repository": "leoncode-openwrt/ustp",
+    "commit": "4f2b9d0da3bdd1c4bfe264bdbbe3ede6dd2ebe2b",
+    "tree": "0c39dc846e8c203c52c51c00948070524297c182"
+  },
+  "ustp-ap": {
+    "repository": "leoncode-openwrt/ustp",
+    "commit": "8d50cbac0c54f936dbcc47985957827d6e03a6de",
+    "tree": "35a42e234cac7d2e3bbd9e4291c3ad4c506be419"
+  },
+  "odhcpd-stable": {
+    "repository": "leoncode-openwrt/odhcpd",
+    "commit": "dd91c45eca4bdf2e2c96f2b34969d3018eb57530",
+    "tree": "fda8c3e190d0d9094fb7041eead9e7f3ed6e0561"
+  },
+  "usteer": {
+    "repository": "leoncode-openwrt/usteer",
+    "commit": "947969722087281b874fe7b4dbfe36c5b462c1fc",
+    "tree": "ef51f3ada568e6ebbe6fe055ec5a5dd9684a1d49"
+  }
+}

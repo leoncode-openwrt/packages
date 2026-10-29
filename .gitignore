@@ -1,3 +1,8 @@
 .DS_Store
 dist/
 work/
+
+__pycache__/
+*.pyc
+release-lock.json
+candidates/

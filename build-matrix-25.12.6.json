@@ -1,0 +1,86 @@
+{
+  "release": "25.12.6",
+  "groups": [
+    {
+      "arch": "x86_64",
+      "apk_arch": "x86_64",
+      "target": "x86/64",
+      "sdk_file": "openwrt-sdk-25.12.6-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst",
+      "sdk_sha256": "1864152619092e781fa36a401960c8e9ae42d6a364c44ee5f0b197ca5f3c0fcc",
+      "recipes": {
+        "odhcpd": "odhcpd-stable",
+        "ustp": "ustp-router"
+      },
+      "packages": [
+        "odhcpd-ipv6only",
+        "ustp"
+      ],
+      "artifacts": [
+        {
+          "name": "odhcpd-ipv6only",
+          "version": "2026.06.29~5d7be43f-r3",
+          "binary": "usr/sbin/odhcpd"
+        },
+        {
+          "name": "ustp",
+          "version": "2026.07.18~64752fd2-r2",
+          "binary": "sbin/ustpd"
+        }
+      ]
+    },
+    {
+      "arch": "aarch64_cortex-a53",
+      "apk_arch": "aarch64_cortex-a53",
+      "target": "mediatek/filogic",
+      "sdk_file": "openwrt-sdk-25.12.6-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64.tar.zst",
+      "sdk_sha256": "1c04ac47bdfc361d6aab299eb520d570e368013dedcb8d29cf39dc7168ae642e",
+      "recipes": {
+        "ustp": "ustp-ap",
+        "usteer": "usteer"
+      },
+      "packages": [
+        "ustp",
+        "usteer"
+      ],
+      "artifacts": [
+        {
+          "name": "ustp",
+          "version": "2026.09.07~8d50cbac-r2",
+          "binary": "sbin/ustpd"
+        },
+        {
+          "name": "usteer",
+          "version": "2026.09.07-r3",
+          "binary": "sbin/usteerd"
+        }
+      ]
+    },
+    {
+      "arch": "mipsel_24kc",
+      "apk_arch": "mipsel_24kc",
+      "target": "ramips/mt7621",
+      "sdk_file": "openwrt-sdk-25.12.6-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst",
+      "sdk_sha256": "e4e3f25962ddf3ed55207fed456ecd1d6e55f3482c976b3183a640df6ef0adf0",
+      "recipes": {
+        "ustp": "ustp-ap",
+        "usteer": "usteer"
+      },
+      "packages": [
+        "ustp",
+        "usteer"
+      ],
+      "artifacts": [
+        {
+          "name": "ustp",
+          "version": "2026.09.07~8d50cbac-r2",
+          "binary": "sbin/ustpd"
+        },
+        {
+          "name": "usteer",
+          "version": "2026.09.07-r3",
+          "binary": "sbin/usteerd"
+        }
+      ]
+    }
+  ]
+}

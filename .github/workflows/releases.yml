@@ -153,3 +153,41 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           APK_REPOSITORY_KEY: ${{ secrets.APK_REPOSITORY_KEY }}
         run: bash scripts/publish.sh
+
+  pages:
+    needs: [plan, publish]
+    if: >-
+      always() && !cancelled() && needs.plan.result == 'success' &&
+      (needs.publish.result == 'success' ||
+       (needs.plan.outputs.build == 'false' && needs.publish.result == 'skipped')) &&
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'leoncode-openwrt/packages'
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Assemble and sign feeds from all published releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APK_REPOSITORY_KEY: ${{ secrets.APK_REPOSITORY_KEY }}
+        run: bash scripts/pages.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
+      - name: Deploy APK feed
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
+      - name: Verify live HTTPS files and fetch packages with APK
+        run: python3 scripts/pages.py verify-live --apk "$PAGES_APK"

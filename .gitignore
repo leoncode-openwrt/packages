@@ -6,3 +6,4 @@ __pycache__/
 *.pyc
 release-lock.json
 candidates/
+_site/

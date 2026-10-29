@@ -11,8 +11,8 @@
   },
   "odhcpd-stable": {
     "repository": "leoncode-openwrt/odhcpd",
-    "commit": "dd91c45eca4bdf2e2c96f2b34969d3018eb57530",
-    "tree": "fda8c3e190d0d9094fb7041eead9e7f3ed6e0561"
+    "commit": "e10210918f10f914c67b78e6d35b8cf4ca58cbfb",
+    "tree": "ccf116a7e67c9ecf582ef905469c870b3e274a3e"
   },
   "usteer": {
     "repository": "leoncode-openwrt/usteer",

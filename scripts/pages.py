@@ -160,12 +160,12 @@ def verify_live(output, apk):
             run(apk, '--root', root, '--usermode', '--arch', arch, '--initdb',
                 '--keys-dir', ROOT / 'keys', '--repositories-file', '/dev/null',
                 '--no-network', '--no-scripts', 'add')
-            run(apk, '--root', root, '--usermode', '--arch', arch, '--keys-dir', ROOT / 'keys',
+            run(apk, '--root', root, '--arch', arch, '--keys-dir', ROOT / 'keys',
                 '--repositories-file', '/dev/null', '--repository', BASE + str(relative), 'update')
             metadata = json.loads(run(apk, 'adbdump', '--format', 'json', index))
             dest = root / 'downloads'
             dest.mkdir()
-            run(apk, '--root', root, '--usermode', '--arch', arch, '--keys-dir', ROOT / 'keys',
+            run(apk, '--root', root, '--arch', arch, '--keys-dir', ROOT / 'keys',
                 '--repositories-file', '/dev/null', '--repository', BASE + str(relative),
                 'fetch', '--output', dest, *(p['name'] for p in metadata['packages']))
     print(f'HTTPS hashes and APK signatures verified for {len(manifest)} published files')

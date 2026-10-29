@@ -12,7 +12,7 @@ import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = 'https://downloads.openwrt.org'
-RECIPE_REVISION = 1
+RECIPE_REVISION = 2
 
 def fetch(url):
     assert url.startswith(BASE + '/')

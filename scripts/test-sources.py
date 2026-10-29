@@ -38,6 +38,9 @@ def main():
             assert tree == pin['tree'], f'{recipe}: patched source differs from organization commit'
             remote = json.loads(subprocess.check_output(['gh', 'api', f'repos/{pin["repository"]}/git/commits/{pin["commit"]}'], text=True))
             assert remote['tree']['sha'] == tree
+            comparison = json.loads(subprocess.check_output([
+                'gh', 'api', f'repos/{pin["repository"]}/compare/{pin["commit"]}...main'], text=True))
+            assert comparison['status'] in ('ahead', 'identical'), f'{recipe}: source pin is not on main'
             sources[recipe] = source
         deps = ROOT / 'tests/dependencies'
         for dep in json.loads((deps / 'lock.json').read_text()):

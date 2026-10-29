@@ -5,10 +5,9 @@ This is an independent packaging repository. Sources remain reviewable upstream 
 
 | Source | Branch | Packages and architectures |
 | --- | --- | --- |
-| [ustp](https://github.com/leoncode-openwrt/ustp) | `leoncode/router` | ustp / x86_64 |
-| [ustp](https://github.com/leoncode-openwrt/ustp) | `leoncode/ap` | ustp / aarch64_cortex-a53, mipsel_24kc |
-| [usteer](https://github.com/leoncode-openwrt/usteer) | `leoncode/stable` | usteer / aarch64_cortex-a53, mipsel_24kc |
-| [odhcpd](https://github.com/leoncode-openwrt/odhcpd) | `leoncode/stable` | odhcpd-ipv6only / x86_64 |
+| [ustp](https://github.com/leoncode-openwrt/ustp) | `main` | ustp / x86_64, aarch64_cortex-a53, mipsel_24kc |
+| [usteer](https://github.com/leoncode-openwrt/usteer) | `main` | usteer / aarch64_cortex-a53, mipsel_24kc |
+| [odhcpd](https://github.com/leoncode-openwrt/odhcpd) | `main` | odhcpd-ipv6only / x86_64 |
 
 ## Automatic release builds
 
@@ -38,9 +37,12 @@ Hardware boot and runtime acceptance remain separate from build verification.
 in the LeonCode forks. Original authorship and licenses are preserved. The initial
 inputs originate from the earlier JxnLexn work; publication branding is LeonCode.
 
-The router USTP branch excludes AP-specific DSA/shutdown changes. odhcpd retains
-the deployed stable DNS relay backport rather than a newer unrelated fork tip.
-Each fork has an English `LEONCODE.md` explaining its changes and maintenance line.
+All USTP builds use one recipe and the same source commit, including DSA reception
+and shutdown fixes, regardless of device role. odhcpd retains the deployed stable
+DNS relay backport rather than a newer unrelated fork tip. Each fork has an English
+`LEONCODE.md` explaining its changes and remaining upstream-review questions.
+Build pins must be ancestors of the corresponding repository's `main` branch.
+The older role-specific USTP builds remain in release `openwrt-25.12.6-r1`.
 
 Source updates require a reviewed commit/patch pin and tests. Changed package
 bytes require a new package revision. Release assets are never overwritten.

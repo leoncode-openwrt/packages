@@ -20,56 +20,25 @@
         "type": "public_commit"
       }
     },
-    "ustp-router": {
-      "repository": "JxnLexn/openwrt-ustp",
-      "commit": "64752fd2a3725665733169e6914082aac0d7d625",
-      "git_tree": "dcc244fce843eeabe18de7404d98b67fee7a5efa",
-      "archive": "ustp-2026.07.18~64752fd2.tar.xz",
-      "sha256": "6ad2784da13f87b9c113ec3d0352c3c49579713c5f1d0068cc3a123cf104f58f",
-      "source_root": "ustp-2026.07.18~64752fd2",
-      "patches": [
-        {
-          "path": "packages/ustp-router/patches/100-assign-destination-single-evaluation.patch",
-          "sha256": "f67765d8de42e031e9c0824e16f055d4210a74ae7c2f3246f7b811b5c61057b5",
-          "source_repository": "JxnLexn/openwrt-ustp",
-          "source_commit": "8d50cbac0c54f936dbcc47985957827d6e03a6de",
-          "source_provenance": "archived_local",
-          "source_recipe": "ustp-ap"
-        }
-      ],
-      "provenance": {
-        "type": "public_commit"
-      }
-    },
-    "ustp-ap": {
-      "repository": "JxnLexn/openwrt-ustp",
-      "commit": "8d50cbac0c54f936dbcc47985957827d6e03a6de",
-      "git_tree": "35a42e234cac7d2e3bbd9e4291c3ad4c506be419",
-      "archive": "ustp-2026.09.07~8d50cbac.tar.xz",
-      "sha256": "943aa57c23cf582f5d853ec453d259dc2fba5a87a0dea4a40bfb0da7ad30f5d8",
-      "source_root": "ustp-2026.09.07~8d50cbac",
-      "patches": [],
-      "provenance": {
-        "type": "archived_local",
-        "public_base": {
-          "recipe": "ustp-router",
-          "repository": "JxnLexn/openwrt-ustp",
-          "commit": "64752fd2a3725665733169e6914082aac0d7d625",
-          "git_tree": "dcc244fce843eeabe18de7404d98b67fee7a5efa"
-        },
-        "diff": {
-          "path": "sources/provenance/ustp-ap-from-public-base.patch",
-          "sha256": "894c21d2656f12711932c0bc781c922bbe0aea00a5284d0f7d9120b4a55a1bce"
-        }
-      }
-    },
     "usteer": {
-      "repository": "JxnLexn/usteer",
+      "repository": "leoncode-openwrt/usteer",
       "commit": "947969722087281b874fe7b4dbfe36c5b462c1fc",
       "git_tree": "ef51f3ada568e6ebbe6fe055ec5a5dd9684a1d49",
       "archive": "usteer-2026.09.07-947969722087281b874fe7b4dbfe36c5b462c1fc.tar.xz",
       "sha256": "c19f7b38b0f5045c114107a772f9b4c0d88a326b212c59901691e6b470b9f45d",
       "source_root": "usteer-2026.09.07",
+      "patches": [],
+      "provenance": {
+        "type": "public_commit"
+      }
+    },
+    "ustp": {
+      "repository": "leoncode-openwrt/ustp",
+      "commit": "8d50cbac0c54f936dbcc47985957827d6e03a6de",
+      "git_tree": "35a42e234cac7d2e3bbd9e4291c3ad4c506be419",
+      "archive": "ustp-2026.09.07~8d50cbac.tar.xz",
+      "sha256": "943aa57c23cf582f5d853ec453d259dc2fba5a87a0dea4a40bfb0da7ad30f5d8",
+      "source_root": "ustp-2026.09.07~8d50cbac",
       "patches": [],
       "provenance": {
         "type": "public_commit"

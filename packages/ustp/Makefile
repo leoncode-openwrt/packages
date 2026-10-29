@@ -1,14 +1,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ustp
-PKG_VERSION:=2026.07.18~64752fd2
-PKG_RELEASE:=2
-PKG_SOURCE_DATE:=2026-07-18
-PKG_SOURCE_VERSION:=64752fd2a3725665733169e6914082aac0d7d625
+PKG_VERSION:=2026.09.07~8d50cbac
+PKG_RELEASE:=3
+PKG_SOURCE_DATE:=2026-09-07
+PKG_SOURCE_VERSION:=8d50cbac0c54f936dbcc47985957827d6e03a6de
 PKG_SOURCE:=ustp-$(PKG_VERSION).tar.xz
 # The exact git archive is supplied with this preparation bundle. No network ref.
 PKG_SOURCE_URL:=file://$(TOPDIR)/custom-distfiles
-PKG_HASH:=6ad2784da13f87b9c113ec3d0352c3c49579713c5f1d0068cc3a123cf104f58f
+PKG_HASH:=943aa57c23cf582f5d853ec453d259dc2fba5a87a0dea4a40bfb0da7ad30f5d8
 PKG_LICENSE:=GPL-2.0
 PKG_BUILD_FLAGS:=lto
 
@@ -20,7 +20,7 @@ CMAKE_OPTIONS += -DBUILD_TESTING=OFF
 define Package/ustp
   SECTION:=net
   CATEGORY:=Network
-  TITLE:=OpenWrt STP/RSTP daemon (router source preserved)
+  TITLE:=OpenWrt STP/RSTP daemon (LeonCode)
   DEPENDS:=+libubox +libubus
 endef
 

@@ -17,36 +17,28 @@ RELEASE = "25.12.6"
 # Deliberate source changes require review of these pins, the manifests and tests.
 EXPECTED_PINS = {
     "odhcpd-stable": ("openwrt/odhcpd", "5d7be43f8b9dec0eb47e245cfab81108bb131273"),
-    "ustp-router": ("JxnLexn/openwrt-ustp", "64752fd2a3725665733169e6914082aac0d7d625"),
-    "ustp-ap": ("JxnLexn/openwrt-ustp", "8d50cbac0c54f936dbcc47985957827d6e03a6de"),
-    "usteer": ("JxnLexn/usteer", "947969722087281b874fe7b4dbfe36c5b462c1fc"),
+    "ustp": ("leoncode-openwrt/ustp", "8d50cbac0c54f936dbcc47985957827d6e03a6de"),
+    "usteer": ("leoncode-openwrt/usteer", "947969722087281b874fe7b4dbfe36c5b462c1fc"),
 }
 EXPECTED_PATCHES = {
     "odhcpd-stable": {
         "999-dns-rewrite-relay-search-domains.patch":
             "92909f8647ff8f53ee13185452ce5070b0df4a5246c7c4ab486f60e2e82e92d7",
     },
-    "ustp-router": {
-        "100-assign-destination-single-evaluation.patch":
-            "f67765d8de42e031e9c0824e16f055d4210a74ae7c2f3246f7b811b5c61057b5",
-    },
-    "ustp-ap": {},
+    "ustp": {},
     "usteer": {},
 }
 EXPECTED_GROUPS = {
-    "x86_64": ("x86_64", "x86/64", {"odhcpd": "odhcpd-stable", "ustp": "ustp-router"}),
-    "aarch64_cortex-a53": ("aarch64_cortex-a53", "mediatek/filogic", {"ustp": "ustp-ap", "usteer": "usteer"}),
-    "mipsel_24kc": ("mipsel_24kc", "ramips/mt7621", {"ustp": "ustp-ap", "usteer": "usteer"}),
+    "x86_64": ("x86_64", "x86/64", {"odhcpd": "odhcpd-stable", "ustp": "ustp"}),
+    "aarch64_cortex-a53": ("aarch64_cortex-a53", "mediatek/filogic", {"ustp": "ustp", "usteer": "usteer"}),
+    "mipsel_24kc": ("mipsel_24kc", "ramips/mt7621", {"ustp": "ustp", "usteer": "usteer"}),
 }
 BINARIES = {"odhcpd-ipv6only": "usr/sbin/odhcpd", "ustp": "sbin/ustpd", "usteer": "sbin/usteerd"}
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 MAX_MEMBER = 16 * 1024 * 1024
 MAX_SOURCE = 64 * 1024 * 1024
-LOCAL_DIFF = {
-    "path": "sources/provenance/ustp-ap-from-public-base.patch",
-    "sha256": "894c21d2656f12711932c0bc781c922bbe0aea00a5284d0f7d9120b4a55a1bce",
-}
+
 
 
 class ValidationError(ValueError):
@@ -178,34 +170,6 @@ def check_patch_paths(path):
                 require(".git" not in relative.parts, "Patch targets Git metadata")
 
 
-def verify_archived_local(root, entries):
-    local = entries["ustp-ap"]
-    provenance = local.get("provenance", {})
-    require(provenance.get("type") == "archived_local", "AP source must be identified as locally archived")
-    base = entries["ustp-router"]
-    require(provenance.get("public_base") == {
-        "recipe": "ustp-router", "repository": base["repository"],
-        "commit": base["commit"], "git_tree": base["git_tree"],
-    }, "Local source has an unreviewed public base")
-    require(provenance.get("diff") == LOCAL_DIFF, "Local source reconstruction diff is unreviewed")
-    patch = project_file(root, LOCAL_DIFF["path"])
-    require(digest(patch.read_bytes()) == LOCAL_DIFF["sha256"], "Local reconstruction diff hash mismatch")
-    check_patch_paths(patch)
-    actual = {str(p.relative_to(root)) for p in (root / "sources/provenance").glob("*.patch")}
-    require(actual == {LOCAL_DIFF["path"]}, "Unlisted source reconstruction diff")
-    # source_tree() already validated every archive path, type, size and digest.
-    with tempfile.TemporaryDirectory(prefix="prepared-source-reconstruction-") as temporary:
-        destination = Path(temporary)
-        with tarfile.open(root / "sources" / base["archive"], "r:*") as archive:
-            archive.extractall(destination, filter="data")
-        source = destination / base["source_root"]
-        command = ["git", "-c", "core.autocrlf=false", "-c", "core.filemode=true", "apply", "--whitespace=nowarn"]
-        for options in (["--check", str(patch)], [str(patch)]):
-            run = subprocess.run(command + options, cwd=source, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            require(run.returncode == 0, "Local reconstruction diff does not apply cleanly to the public base")
-        require(directory_tree(source) == local["git_tree"], "Reconstructed local source differs from the pinned AP archive")
-
-
 def recipe_values(makefile):
     text = makefile.read_text()
     values = {}
@@ -275,12 +239,12 @@ def validate_repo(root):
     pins = load_json(project_file(root, "sources/prepared-pins.json"))
     require(pins.get("schema") == 1 and pins.get("release") == RELEASE, "Wrong source manifest schema/release")
     entries = pins.get("recipes", {})
-    require(set(entries) == set(EXPECTED_PINS), "Expected exactly four prepared source records")
+    require(set(entries) == set(EXPECTED_PINS), "Expected exactly three prepared source records")
     recipes, archives = {}, set()
     for name, expected in EXPECTED_PINS.items():
         entry = entries[name]
         require((entry.get("repository"), entry.get("commit")) == expected, f"Unreviewed or incomplete source pin: {name}")
-        provenance_type = "archived_local" if name == "ustp-ap" else "public_commit"
+        provenance_type = "public_commit"
         require(entry.get("provenance", {}).get("type") == provenance_type, f"Wrong source provenance classification: {name}")
         require(HEX40.fullmatch(entry.get("git_tree", "")), f"Missing full Git tree pin: {name}")
         require(HEX64.fullmatch(entry.get("sha256", "")), f"Missing archive SHA-256: {name}")
@@ -310,18 +274,13 @@ def validate_repo(root):
             require(HEX64.fullmatch(patch.get("sha256", "")), "Missing patch SHA-256")
             require(digest(path.read_bytes()) == patch["sha256"], f"Patch content differs from manifest: {relative}")
             declared[path.name] = patch["sha256"]
-            if "source_commit" in patch or "source_repository" in patch:
-                require(patch.get("source_repository") == "JxnLexn/openwrt-ustp" and patch.get("source_commit") == EXPECTED_PINS["ustp-ap"][1], "Unreviewed patch source pin")
-                require(patch.get("source_provenance") == "archived_local" and patch.get("source_recipe") == "ustp-ap", "Macro backport must identify its local archived source")
-            else:
-                require(isinstance(patch.get("provenance"), str) and patch["provenance"].strip(), "Patch lacks provenance")
+            require(isinstance(patch.get("provenance"), str) and patch["provenance"].strip(), "Patch lacks provenance")
             check_patch_paths(path)
         require(declared == EXPECTED_PATCHES[name], f"Reviewed patch set missing or changed: {name}")
         actual = {p.name for p in (root / "packages" / name / "patches").glob("*.patch")}
         require(actual == set(declared), f"Unlisted patch in recipe: {name}")
     actual_archives = {p.name for p in (root / "sources").glob("*.tar.*")}
     require(actual_archives == archives, "Unlisted or missing source archive")
-    verify_archived_local(root, entries)
     matrix = load_json(project_file(root, "build-matrix-25.12.6.json"))
     groups = validate_matrix(matrix, recipes)
     return {"release": RELEASE, "source_manifest": pins, "groups": groups, "recipes": recipes, "artifact_count": 6}
@@ -401,7 +360,7 @@ def self_test(root):
         rejected(lambda: validate_repo(fixture), "changed archive under its original filename")
         archive.write_bytes(saved_bytes)
         for label, recipe, field, value in [
-            ("missing required macro backport", "ustp-router", "patches", []),
+            ("missing required DNS backport", "odhcpd-stable", "patches", []),
             ("incorrect source tree attestation", "odhcpd-stable", "git_tree", "a" * 40),
             ("abbreviated source pin", "usteer", "commit", "94796972"),
         ]:
@@ -431,7 +390,7 @@ def main():
         elif args.json:
             print(json.dumps(result, indent=2))
         else:
-            print("Validated 4 pinned source trees and patch sets, 3 SDK groups and 6 distinct APK artifacts.")
+            print("Validated 3 pinned source trees and patch sets, 3 SDK groups and 6 distinct APK artifacts.")
     except (ValidationError, OSError, json.JSONDecodeError, tarfile.TarError, KeyError, TypeError) as error:
         print(f"Validation failed: {error}", file=sys.stderr)
         return 1

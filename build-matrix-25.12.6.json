@@ -9,7 +9,7 @@
       "sdk_sha256": "1864152619092e781fa36a401960c8e9ae42d6a364c44ee5f0b197ca5f3c0fcc",
       "recipes": {
         "odhcpd": "odhcpd-stable",
-        "ustp": "ustp-router"
+        "ustp": "ustp"
       },
       "packages": [
         "odhcpd-ipv6only",
@@ -23,7 +23,7 @@
         },
         {
           "name": "ustp",
-          "version": "2026.07.18~64752fd2-r2",
+          "version": "2026.09.07~8d50cbac-r3",
           "binary": "sbin/ustpd"
         }
       ]
@@ -35,7 +35,7 @@
       "sdk_file": "openwrt-sdk-25.12.6-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64.tar.zst",
       "sdk_sha256": "1c04ac47bdfc361d6aab299eb520d570e368013dedcb8d29cf39dc7168ae642e",
       "recipes": {
-        "ustp": "ustp-ap",
+        "ustp": "ustp",
         "usteer": "usteer"
       },
       "packages": [
@@ -45,7 +45,7 @@
       "artifacts": [
         {
           "name": "ustp",
-          "version": "2026.09.07~8d50cbac-r2",
+          "version": "2026.09.07~8d50cbac-r3",
           "binary": "sbin/ustpd"
         },
         {
@@ -62,7 +62,7 @@
       "sdk_file": "openwrt-sdk-25.12.6-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst",
       "sdk_sha256": "e4e3f25962ddf3ed55207fed456ecd1d6e55f3482c976b3183a640df6ef0adf0",
       "recipes": {
-        "ustp": "ustp-ap",
+        "ustp": "ustp",
         "usteer": "usteer"
       },
       "packages": [
@@ -72,7 +72,7 @@
       "artifacts": [
         {
           "name": "ustp",
-          "version": "2026.09.07~8d50cbac-r2",
+          "version": "2026.09.07~8d50cbac-r3",
           "binary": "sbin/ustpd"
         },
         {

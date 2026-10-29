@@ -64,6 +64,16 @@ def main():
                        LD_LIBRARY_PATH=str(prefix / 'lib'), PKG_CONFIG_PATH=str(prefix / 'lib/pkgconfig'))
             for recipe, source in sources.items():
                 build = tmp / mode / recipe
+                if recipe == 'odhcpd-stable':
+                    # This standalone parser test needs no daemon/UCI runtime.
+                    build.mkdir()
+                    binary = build / 'test_dns_rewrite'
+                    run('cc', *flags.split(), '-D_GNU_SOURCE', '-std=gnu11',
+                        '-Wall', '-Wextra', '-Werror', '-I' + str(source / 'src'),
+                        str(source / 'src/dns_rewrite.c'),
+                        str(source / 'tests/test_dns_rewrite.c'), '-o', str(binary))
+                    run(str(binary), env=env)
+                    continue
                 run('cmake', '-S', str(source), '-B', str(build), '-DBUILD_TESTING=ON',
                     '-DUSTP_BUILD_DAEMON=OFF', '-DCMAKE_PREFIX_PATH=' + str(prefix),
                     '-DCMAKE_C_FLAGS=' + flags + ' -I' + str(prefix / 'include'),

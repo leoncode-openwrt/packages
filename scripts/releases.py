@@ -13,6 +13,8 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[1]
 BASE = 'https://downloads.openwrt.org'
 RECIPE_REVISION = 2
+AUTOMATIC_MINIMUM = (25, 12, 6)
+MANUAL_BACKFILLS = {'25.12.5'}
 
 def fetch(url):
     assert url.startswith(BASE + '/')
@@ -24,8 +26,8 @@ def version(value):
     if not re.fullmatch(r'[0-9]{2}\.[0-9]{2}\.[0-9]+', value):
         raise ValueError('Only final OpenWrt releases are supported')
     parts = tuple(map(int, value.split('.')))
-    if parts < (25, 12, 6):
-        raise ValueError('The initial support boundary is OpenWrt 25.12.6')
+    if parts < AUTOMATIC_MINIMUM and value not in MANUAL_BACKFILLS:
+        raise ValueError('Unsupported release; only 25.12.5 is allowed as a manual backfill')
     return parts
 
 def tag(release):
@@ -40,8 +42,8 @@ def choose(requested):
     eligible = []
     for item in inventory['versions_list']:
         try:
-            version(item)
-            eligible.append(item)
+            if version(item) >= AUTOMATIC_MINIMUM:
+                eligible.append(item)
         except ValueError:
             pass
     published = json.loads(subprocess.check_output([
@@ -108,6 +110,8 @@ def materialize(lock):
     for name in ('validate-prepared.py', 'sdk-provenance.py', 'build-prepared.sh', 'collect-prepared.sh'):
         path = ROOT / 'scripts' / name
         path.write_text(path.read_text().replace('25.12.6', release))
+    recipe = ROOT / 'packages/usteer/Makefile'
+    recipe.write_text(recipe.read_text().replace('25.12.6', release))
     pins = ROOT / 'sources/prepared-pins.json'
     data = json.loads(pins.read_text())
     data['release'] = release

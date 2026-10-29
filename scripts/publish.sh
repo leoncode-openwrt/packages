@@ -75,4 +75,9 @@ for file in dist/*; do
     gh release upload "$RELEASE_TAG" "$file"
   fi
 done
-gh release edit "$RELEASE_TAG" --draft=false
+if [ "$RELEASE" = 25.12.5 ]; then
+  # A historical backfill must not replace the current release's Latest badge.
+  gh release edit "$RELEASE_TAG" --draft=false --latest=false
+else
+  gh release edit "$RELEASE_TAG" --draft=false
+fi

@@ -14,6 +14,9 @@ This is an independent packaging repository. Sources remain reviewable upstream 
 Actions checks the official OpenWrt version inventory twice daily. Final releases
 from 25.12.6 onward are eligible; release candidates and moving snapshots are
 excluded. Missing releases are retried. Source pins never follow a moving branch.
+OpenWrt 25.12.5 is additionally allowed as an explicitly requested manual backfill
+(`workflow_dispatch` with `release: 25.12.5`). Automatic discovery never selects
+25.12.5, including after recipe revisions change. Its published feed is retained.
 Future incompatible SDKs fail validation instead of publishing partial packages.
 
 Each release verifies the signed OpenWrt SDK checksum lists, runs regression tests,
@@ -44,7 +47,8 @@ retry deployment when no new OpenWrt release needs building.
 
 Use only the feed matching the device's exact OpenWrt release and APK architecture
 (`. /etc/openwrt_release; echo "$DISTRIB_RELEASE"; cat /etc/apk/arch`). These feeds
-do not support 25.12.5 or snapshots. Keep the official OpenWrt feeds enabled for
+also support the manually built 25.12.5 release: replace `25.12.6` in the URLs
+above with `25.12.5`. Snapshots are unsupported. Keep the official OpenWrt feeds enabled for
 dependencies. Adding a feed does not itself install packages or ensure that an
 Attended Sysupgrade server can include them.
 

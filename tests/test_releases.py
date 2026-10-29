@@ -10,9 +10,15 @@ spec.loader.exec_module(r)
 
 class Releases(unittest.TestCase):
     def test_rejects_non_release_and_old_package_formats(self):
-        for value in ['SNAPSHOT', '25.12.7-rc1', '../25.12.6', '25.12.6; id', '24.10.8', '25.12.5', '']:
+        for value in ['SNAPSHOT', '25.12.7-rc1', '../25.12.6', '25.12.6; id', '24.10.8', '25.12.4', '']:
             with self.assertRaises(ValueError):
                 r.version(value)
+
+    def test_manual_backfill_is_explicit_only(self):
+        self.assertEqual(r.choose('25.12.5'), '25.12.5')
+        self.assertEqual(r.tag('25.12.5'), 'openwrt-25.12.5-r2')
+        with patch.object(r, 'fetch', return_value=b'{"versions_list":["25.12.5","25.12.6"]}'), patch.object(r.subprocess, 'check_output', return_value=json.dumps([[{'tag_name': r.tag('25.12.6'), 'draft': False}]])):
+            self.assertEqual(r.choose(''), '')
 
     def test_discovers_missing_release_numerically(self):
         inventory = {'versions_list': ['25.12.10', '25.12.7-rc1', '25.12.6', '25.12.9', 'SNAPSHOT']}
